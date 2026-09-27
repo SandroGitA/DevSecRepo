@@ -1,0 +1,17 @@
+@TestJob_HostAddress = http://localhost:5253
+
+### Проверка валидации: пустые поля должны вернуть VALIDATION_ERROR
+POST {{TestJob_HostAddress}}/api/DevSec
+Content-Type: application/json
+Accept: application/json
+
+{
+  "selector": "",
+  "attribute": "",
+  "url_b64": "",
+  "encrypted_text_bytes_b64": "",
+  "key_bytes_b64": "",
+  "page_b64": ""
+}
+
+###

@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: testjob
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d testjob"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "8080:80"
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - ./pgadmin/pgpass:/pgpass:ro
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@test.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: dotnet run --no-launch-profile
+    ports:
+      - "8090:8080"
+    environment:
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=testjob;Username=postgres;Password=postgres"
+      ASPNETCORE_URLS: "http://+:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
